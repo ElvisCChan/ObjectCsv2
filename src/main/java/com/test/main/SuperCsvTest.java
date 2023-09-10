@@ -2,15 +2,9 @@ package com.test.main;
 
 import java.io.FileWriter;
 import java.io.IOException;
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
-
-import org.supercsv.cellprocessor.Optional;
-import org.supercsv.cellprocessor.constraint.NotNull;
-import org.supercsv.cellprocessor.ift.CellProcessor;
-import org.supercsv.io.CsvBeanWriter;
-import org.supercsv.io.ICsvBeanWriter;
-import org.supercsv.prefs.CsvPreference;
 
 import com.opencsv.CSVWriter;
 
@@ -36,6 +30,8 @@ public class SuperCsvTest {
                 List.of(Country.builder().name("India").location("Asia").build(),
                         Country.builder().name("USA").location("North America").build())));
 
+    
+
         List<String> fieldNames = ObjectUtils.getObjectFieldNames(Person.builder().build());
         String[] header = fieldNames.toArray(new String[fieldNames.size()]);
         csvWriter.writeNext(header);
@@ -49,6 +45,7 @@ public class SuperCsvTest {
         String[] values = { String.valueOf(person.getName()), String.valueOf(person.getAge()),
                 String.valueOf(person.getAge()), String.valueOf(country.getName()), String.valueOf(country.getName()),
                 String.valueOf(country.getClient()) };
+
         csvWriter.writeNext(values);
         // csvWriter.close();
 
@@ -66,16 +63,21 @@ public class SuperCsvTest {
 
     }
 
-    private static CellProcessor[] getCellProcessors() {
-        // Define the cell processors for each field
-        return new CellProcessor[] {
-                new NotNull(), // name
-                new NotNull(), // email
-                new NotNull(), // age
-                new Optional(), // age
-                new Optional(), // age
-                new Optional(), // age
-        };
+    public String toCommaSeparatedString(Object object) {
+        List<String> fieldValues = new ArrayList<>();
+        Field[] fields = object.getClass().getDeclaredFields();
+
+        for (Field field : fields) {
+            // field.setAccessible(true);
+            try {
+                Object value = field.get(this);
+                fieldValues.add(String.valueOf(value));
+            } catch (IllegalAccessException e) {
+                e.printStackTrace();
+            }
+        }
+
+        return String.join(",", fieldValues);
     }
 
     @Getter
